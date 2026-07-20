@@ -5,6 +5,8 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:5173',
+    // Adicione esta linha abaixo:
+    testIdAttribute: 'data-test-id', 
   },
   projects: [
     {
