@@ -10,8 +10,9 @@ Em uma implementação completa, distribuiria os testes da seguinte forma:
 - Testes de integração: 8
 - Testes E2E: 4
 
-A maior parte dos testes estão localizados nos testes unitários, pois esses são mais rápidos e baratos de serem feitos, e evitam que falhas encontradas nas etapas iniciais do desenvolvimento se espalhem para as camadas mais altas da aplicação, reduzindo o tempo e os custos necessários para corrigir problemas nas etapas posteriores do desenvolvimento.
-A menor parte dos testes está concentrada nos testes E2E no topo da pirâmide, pois esses testes possuem maior custo de desenvolvimento e execução, por isso, foram reservados para validar apenas os fluxos mais críticos da aplicação.
+A maior parte dos testes está concentrada na camada de testes unitários, pois eles são mais rápidos e baratos de desenvolver e executar. Além disso, permitem identificar falhas nas etapas iniciais do desenvolvimento, evitando que esses problemas se propaguem para as camadas superiores da aplicação e reduzindo o tempo e o custo de correção.
+
+A menor parte dos testes está concentrada na camada de testes E2E, no topo da pirâmide, pois esses testes possuem maior custo de desenvolvimento e execução. Por esse motivo, foram reservados para validar apenas os fluxos mais críticos da aplicação.
 
 **Total planejado: 30 testes.**
 
@@ -54,7 +55,7 @@ Os testes de integração devem validar a API utilizando HTTP e um banco
 MySQL dedicado para testes.
 
 Para garantir isolamento e reprodutibilidade entre as execuções, a
-estratégia adotada é:
+estratégia utilizada foi:
 
 -   utilizar um banco separado do ambiente de desenvolvimento;
 -   aplicar o schema antes da execução da suíte;
