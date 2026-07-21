@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from "@nestjs/common";
-import { getStatusFromPeriod } from "src/modules/pesquisa/helpers/get-status-from-period";
-import { validateSurveyDates } from "src/modules/pesquisa/helpers/validate-survey-dates";
+import { getStatusFromPeriod } from "../helpers/get-status-from-period";
+import { validateSurveyDates } from "../helpers/validate-survey-dates";
 import { CreatePesquisaDto } from "../dtos/create-pesquisa.dto";
 import { CreatePesquisaRepository } from "../repositories/create-pesquisa.repository";
 import { FindPesquisaByNomeRepository } from "../repositories/find-pesquisa-by-nome.repository";

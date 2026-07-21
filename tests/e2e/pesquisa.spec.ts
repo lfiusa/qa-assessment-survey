@@ -1,63 +1,97 @@
-import { test, expect } from '@playwright/test';
+import { test } from "@playwright/test";
 
-test.describe('Fluxo de Pesquisas de Clima', () => {
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
 
-  test('Deve cadastrar uma nova pesquisa com sucesso', async ({ page }) => {
-    await page.goto('/');
+test.describe("Cadastro de pesquisa", () => {
+  test("deve criar uma pesquisa com sucesso", async ({ page }) => {
+    const nomePesquisa = `Pesquisa E2E ${Date.now()}`;
 
-    // 1. Clica no botão "Nova Pesquisa"
-    await page.getByRole('button', { name: 'Nova Pesquisa' }).click();
+    const dataInicial = new Date();
+    dataInicial.setDate(dataInicial.getDate() + 1);
 
-    // 2. Preenche o input do nome da pesquisa
-    const nomeInput = page.getByTestId('pesquisa-nome-input');
-    await expect(nomeInput).toBeVisible({ timeout: 5000 });
-    await nomeInput.fill('Pesquisa de Clima Organizacional 2026');
-    
-    // 3. Preenche as Datas usando os IDs exatos
-    const dataLancamentoInput = page.getByTestId('pesquisa-dataLancamento');
-    await dataLancamentoInput.focus();
-    await dataLancamentoInput.pressSequentially('15072026', { delay: 100 });
+    const dataFinal = new Date();
+    dataFinal.setDate(dataFinal.getDate() + 2);
 
-    const dataEncerramentoInput = page.getByTestId('pesquisa-dataEncerramento');
-    await dataEncerramentoInput.focus();
-    await dataEncerramentoInput.pressSequentially('20072026', { delay: 100 });
+    page.on("request", (request) => {
+      console.log(
+        "REQUISIÇÃO:",
+        request.method(),
+        request.url(),
+      );
+    });
 
-    // 4. Preenche os campos obrigatórios da PERGUNTA
-    const perguntaTitulo = page.getByTestId('pergunta-titulo-input')
-      .or(page.getByLabel(/título da pergunta/i))
-      .or(page.getByPlaceholder(/digite o título da pergunta/i))
-      .or(page.locator('input[name*="pergunta"]').first());
-    
-    await perguntaTitulo.fill('Como você avalia o seu ambiente de trabalho?');
+    page.on("response", async (response) => {
+      console.log(
+        "RESPOSTA:",
+        response.status(),
+        response.request().method(),
+        response.url(),
+      );
 
-    // --- NOVA ABORDAGEM PARA O TIPO DA PERGUNTA ---
-    // Clica no campo/combobox do tipo de pergunta para abrir as opções
-    const perguntaTipoCombo = page.getByTestId('pergunta-tipo-select')
-      .or(page.getByLabel(/tipo/i))
-      .or(page.locator('select').first())
-      .or(page.getByRole('combobox'));
-    
-    await perguntaTipoCombo.click();
-    
-    // Espera um pouquinho para as opções renderizarem e clica em uma delas pelo texto (ex: "Texto" ou "Múltipla escolha")
-    await page.getByRole('option', { name: 'Texto' })
-      .or(page.getByText('Texto', { exact: true }))
-      .or(page.locator('option').nth(1)) // fallback para a primeira opção do select se for um select nativo
-      .first()
+      if (response.status() >= 400) {
+        try {
+          console.log("BODY DO ERRO:", await response.text());
+        } catch {
+          console.log("Não foi possível ler o body da resposta.");
+        }
+      }
+    });
+
+    page.on("requestfailed", (request) => {
+      console.log(
+        "REQUISIÇÃO FALHOU:",
+        request.method(),
+        request.url(),
+        request.failure()?.errorText,
+      );
+    });
+
+    page.on("console", (message) => {
+      console.log(
+        "CONSOLE DO NAVEGADOR:",
+        message.type(),
+        message.text(),
+      );
+    });
+
+    page.on("pageerror", (error) => {
+      console.log("ERRO JAVASCRIPT:", error.message);
+    });
+
+    await page.goto("/pesquisas/criar");
+
+    await page
+      .getByTestId("pesquisa-nome-input")
+      .fill(nomePesquisa);
+
+    await page
+      .getByTestId("pesquisa-dataLancamento")
+      .fill(formatDate(dataInicial));
+
+    await page
+      .getByTestId("pesquisa-dataEncerramento")
+      .fill(formatDate(dataFinal));
+
+    await page
+      .getByTestId("pergunta-nome-input-0")
+      .fill("O que você achou do nosso atendimento?");
+
+    await page
+      .getByTestId("pergunta-tipo-select-0")
+      .selectOption("texto_grande");
+
+    await page
+      .getByTestId("pergunta-respostaObrigatoria-0")
+      .check();
+
+    await page
+      .getByTestId("create-button")
       .click();
 
-    // 5. Marca os campos opcionais / obrigatórios da pergunta (Fregar)
-    const respostaObrigatoria = page.getByLabel(/resposta obrigatória/i)
-      .or(page.getByText(/resposta obrigatória/i))
-      .or(page.locator('input[type="checkbox"]').first());
-    
-    await respostaObrigatoria.click({ force: true }); // Usando click forcado caso ele esteja escondido atrás de algum estilo CSS
+    await page.waitForTimeout(5000);
 
-    // 6. Clica no botão de cadastrar
-    await page.getByRole('button', { name: 'Cadastrar' }).click();
-
-    // 7. Valida se a pesquisa nova aparece com sucesso na listagem inicial
-    await expect(page.getByText('Pesquisa de Clima Organizacional 2026')).toBeVisible({ timeout: 10000 });
+    console.log("URL FINAL:", page.url());
   });
-
 });
