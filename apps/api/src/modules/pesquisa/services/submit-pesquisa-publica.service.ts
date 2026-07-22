@@ -3,14 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type { PerguntaInput } from "src/modules/pesquisa/helpers/types";
-import { validateAllowedFields } from "src/modules/pesquisa/helpers/validate-allowed-fields";
-import { validateAnswersDuplicates } from "src/modules/pesquisa/helpers/validate-answers-duplicates";
-import { validateConditionalFields } from "src/modules/pesquisa/helpers/validate-conditional-fields";
-import { validateFieldValues } from "src/modules/pesquisa/helpers/validate-field-values";
-import { validateRequiredAnswered } from "src/modules/pesquisa/helpers/validate-required-answered";
-import { validateRequiredFields } from "src/modules/pesquisa/helpers/validate-required-fields";
-import { validatePesquisaDisponivel } from "src/modules/pesquisa/helpers/validate-pesquisa-disponivel";
+
+import type { PerguntaInput } from "../helpers/types";
+import { validateAllowedFields } from "../helpers/validate-allowed-fields";
+import { validateAnswersDuplicates } from "../helpers/validate-answers-duplicates";
+import { validateConditionalFields } from "../helpers/validate-conditional-fields";
+import { validateFieldValues } from "../helpers/validate-field-values";
+import { validateRequiredAnswered } from "../helpers/validate-required-answered";
+import { validateRequiredFields } from "../helpers/validate-required-fields";
+import { validatePesquisaDisponivel } from "../helpers/validate-pesquisa-disponivel";
+
 import type { SubmitPesquisaPublicaDto } from "../dtos/submit-pesquisa-publica.dto";
 import { FindPesquisaByPublicIdRepository } from "../repositories/find-pesquisa-by-public-id.repository";
 import { SubmitPesquisaPublicaRepository } from "../repositories/submit-pesquisa-publica.repository";
@@ -24,12 +26,15 @@ export class SubmitPesquisaPublicaService {
 
   async execute(idPublico: string, data: SubmitPesquisaPublicaDto) {
     if (!data.respostas || data.respostas.length === 0) {
-      throw new BadRequestException("Ao menos uma resposta deve ser enviada.");
+      throw new BadRequestException(
+        "Ao menos uma resposta deve ser enviada.",
+      );
     }
 
     if (data.iniciadoEm && data.finalizadoEm) {
       const iniciadoEm = new Date(data.iniciadoEm);
       const finalizadoEm = new Date(data.finalizadoEm);
+
       if (iniciadoEm.getTime() > finalizadoEm.getTime()) {
         throw new BadRequestException(
           "A data de início não pode ser posterior à data de finalização.",
@@ -38,6 +43,7 @@ export class SubmitPesquisaPublicaService {
     }
 
     const pesquisa = await this.findByPublicIdRepository.execute(idPublico);
+
     if (!pesquisa) {
       throw new NotFoundException("Pesquisa não encontrada.");
     }
@@ -53,7 +59,9 @@ export class SubmitPesquisaPublicaService {
         respostaObrigatoria: pergunta.respostaObrigatoria,
         justificarResposta: pergunta.justificarResposta,
         permitirOutro: pergunta.permitirOutro,
-        opcoes: pergunta.opcoes.map((opcao) => ({ id: opcao.id })),
+        opcoes: pergunta.opcoes.map((opcao) => ({
+          id: opcao.id,
+        })),
       });
     }
 
@@ -63,6 +71,7 @@ export class SubmitPesquisaPublicaService {
 
     for (const resposta of data.respostas) {
       const pergunta = perguntasMap.get(resposta.perguntaId)!;
+
       validateAllowedFields(pergunta, resposta);
       validateConditionalFields(pergunta, resposta);
       validateRequiredFields(pergunta, resposta);
@@ -72,19 +81,28 @@ export class SubmitPesquisaPublicaService {
     await this.submitRepository.execute({
       pesquisaId: pesquisa.id,
       empresaId: pesquisa.empresaId,
-      iniciadoEm: data.iniciadoEm ? new Date(data.iniciadoEm) : null,
-      finalizadoEm: data.finalizadoEm ? new Date(data.finalizadoEm) : null,
+      iniciadoEm: data.iniciadoEm
+        ? new Date(data.iniciadoEm)
+        : null,
+      finalizadoEm: data.finalizadoEm
+        ? new Date(data.finalizadoEm)
+        : null,
       respostas: data.respostas.map((resposta) => ({
         perguntaId: resposta.perguntaId,
         opcaoId: resposta.opcaoId ?? null,
-        valorOpcaoPadronizada: resposta.valorOpcaoPadronizada ?? null,
+        valorOpcaoPadronizada:
+          resposta.valorOpcaoPadronizada ?? null,
         valorOpcaoTexto: resposta.valorOpcaoTexto ?? null,
         valorNumerico: resposta.valorNumerico ?? null,
         outroTexto: resposta.outroTexto ?? null,
-        justificativaTexto: resposta.justificativaTexto ?? null,
+        justificativaTexto:
+          resposta.justificativaTexto ?? null,
       })),
     });
 
-    return { ok: true, total: data.respostas.length };
+    return {
+      ok: true,
+      total: data.respostas.length,
+    };
   }
 }

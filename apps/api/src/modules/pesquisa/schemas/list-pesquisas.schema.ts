@@ -1,4 +1,4 @@
-import { listDefaultQuerySchema } from "src/shared/schemas/list.schema";
+import { listDefaultQuerySchema } from "./list.schema";
 import { z } from "zod";
 
 export const listPesquisasQuerySchema = z

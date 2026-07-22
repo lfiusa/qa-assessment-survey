@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:integration": "dotenv -e apps/api/.env.test -- vitest run",
     "lint": "echo \"(placeholder de lint)\""
   },
   "devDependencies": {
